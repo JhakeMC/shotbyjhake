@@ -39,15 +39,11 @@ const SITE = {
     "events": "Workshops and events I have shot or joined."
   },
   "hero": [
-    "images/old-site/home-01.jpg",
-    "images/old-site/home-02.png",
-    "images/old-site/home-03.png"
+    "images/old-site/home-07.jpg",
+    "images/old-site/home-21.jpg",
+    "images/old-site/home-14.jpg"
   ],
   "highlights": [
-    "images/portrait-01.jpg",
-    "images/old-site/home-01.jpg",
-    "images/old-site/home-02.png",
-    "images/old-site/home-03.png",
     "images/old-site/home-04.png",
     "images/old-site/home-05.jpg",
     "images/old-site/home-06.jpg",
