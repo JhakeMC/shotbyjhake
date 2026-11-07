@@ -40,11 +40,10 @@ const SITE = {
   },
   "hero": [
     "images/old-site/home-07.jpg",
-    "images/old-site/home-21.jpg",
+    "images/old-site/home-22.jpg",
     "images/old-site/home-14.jpg"
   ],
   "highlights": [
-    "images/old-site/home-04.png",
     "images/old-site/home-05.jpg",
     "images/old-site/home-06.jpg",
     "images/old-site/home-07.jpg",
@@ -65,9 +64,6 @@ const SITE = {
     "images/old-site/home-22.jpg",
     "images/old-site/home-23.jpg",
     "images/old-site/home-24.jpg",
-    "images/old-site/home-26.jpg",
-    "images/old-site/home-27.jpg",
-    "images/old-site/home-28.jpg",
     "images/old-site/home-29.jpg",
     "images/old-site/home-30.jpg",
     "images/old-site/home-31.jpg",
