@@ -38,42 +38,9 @@ const SITE = {
     "projects": "Shoots and productions I have been part of.",
     "events": "Workshops and events I have shot or joined."
   },
-  "hero": [
-    "images/old-site/home-07.jpg",
-    "images/old-site/home-22.jpg",
-    "images/old-site/home-14.jpg"
-  ],
+  "hero": [],
   "highlights": [
-    "images/old-site/home-05.jpg",
-    "images/old-site/home-06.jpg",
-    "images/old-site/home-07.jpg",
-    "images/old-site/home-08.jpg",
-    "images/old-site/home-09.jpg",
-    "images/old-site/home-10.jpg",
-    "images/old-site/home-11.jpg",
-    "images/old-site/home-12.jpg",
-    "images/old-site/home-13.jpg",
-    "images/old-site/home-14.jpg",
-    "images/old-site/home-15.jpg",
-    "images/old-site/home-16.jpg",
-    "images/old-site/home-17.jpg",
-    "images/old-site/home-18.jpg",
-    "images/old-site/home-19.jpg",
-    "images/old-site/home-20.jpg",
-    "images/old-site/home-21.jpg",
-    "images/old-site/home-22.jpg",
-    "images/old-site/home-23.jpg",
-    "images/old-site/home-24.jpg",
-    "images/old-site/home-29.jpg",
-    "images/old-site/home-30.jpg",
-    "images/old-site/home-31.jpg",
-    "images/old-site/home-32.jpg",
-    "images/old-site/home-33.jpg",
-    "images/old-site/home-34.jpg",
-    "images/old-site/home-35.jpg",
-    "images/old-site/home-36.jpg",
-    "images/old-site/home-40.jpg",
-    "images/old-site/home-46.jpg"
+    "images/portrait-01.jpg"
   ],
   "about": {
     "photo": "images/profile.png",
@@ -126,9 +93,7 @@ const SITE = {
         "Aliana’s decade and eight debut celebration. A moment worth remembering, from the journey towards a bright future.",
         "I am the SDE Editor for the whole event. It was a team collaboration with RZ Aperture and SignatureVisuals as Northlight Productions. We have captured a transitional moment in Aliana’s journey, the blooming of a bright future ahead, and a day worth remembering."
       ],
-      "images": [],
-      "link": "",
-      "linkLabel": ""
+      "images": []
     },
     {
       "title": "Ellen@XVIII",
@@ -164,10 +129,7 @@ const SITE = {
           ],
           "images": []
         }
-      ],
-      "text": [],
-      "link": "",
-      "linkLabel": ""
+      ]
     }
   ],
   "pages": []

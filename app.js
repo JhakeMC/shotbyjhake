@@ -52,7 +52,7 @@
     <div><h2>Education</h2><ol class="tl">${tl(A.education, e => esc(e.years), "school", "note")}</ol></div></section>`;
   };
 
-  const cycles = { projects: ["mint", "pink", "butter", "tomato"], events: ["pink", "mint", "tomato", "violet"] };
+  const cycles = { projects: ["violet", "rose", "lilac", "red"], events: ["rose", "violet", "red", "lilac"] };
   const stories = kind => {
     const list = newest(S[kind]), c = cycles[kind];
     return `<section class="phead"><div class="wrap"><h1>${kind === "projects" ? "Projects" : "Events"}</h1><p>${esc((S.intro || {})[kind] || "")}</p></div></section>` +
