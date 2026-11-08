@@ -160,6 +160,8 @@ a{color:inherit}
   .phead{padding:2.4rem 0 1rem}
   .story .wrap{padding:2rem 1.5rem}
   .two>div{padding:1.6rem 1.4rem}
+  .hero .wrap>div:first-child{text-align:center}
+  .hero .roles,.hero .btns{justify-content:center}
   .lb .p,.lb .n{top:auto;bottom:1.2rem}
 }
 @media (max-width:560px){
@@ -168,7 +170,7 @@ a{color:inherit}
   .nav .wrap{flex-direction:column;align-items:stretch;gap:.1rem;padding:.5rem .6rem .35rem;border-radius:28px}
   .brand{justify-content:center}
   .logo{height:38px}
-  .nav ul{flex-wrap:nowrap;overflow-x:auto;padding:.2rem 0 .3rem;scrollbar-width:none}
+  .nav ul{flex-wrap:nowrap;justify-content:safe center;overflow-x:auto;padding:.2rem 0 .3rem;scrollbar-width:none}
   .nav ul::-webkit-scrollbar{display:none}
   .nav li{flex:0 0 auto}
   .nav li a{padding:.3rem .95rem}
