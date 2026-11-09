@@ -38,34 +38,9 @@ const SITE = {
     "projects": "Shoots and productions I have been part of.",
     "events": "Workshops and events I have shot or joined."
   },
-  "hero": [
-    "images/old-site/home-07.jpg",
-    "images/old-site/home-22.jpg",
-    "images/old-site/home-14.jpg"
-  ],
+  "hero": [],
   "highlights": [
-    "images/uploads/1000050075.jpg",
-    "images/uploads/1000050069.jpg",
-    "images/uploads/1000050072.jpg",
-    "images/uploads/1000050078.jpg",
-    "images/uploads/1000050064.jpg",
-    "images/uploads/1000050156.jpg",
-    "images/uploads/1000050154.jpg",
-    "images/uploads/1000050157.jpg",
-    "images/uploads/1000050161.jpg",
-    "images/uploads/1000050165.jpg",
-    "images/uploads/1000050169.jpg",
-    "images/uploads/1000050170.jpg",
-    "images/uploads/IMG_3305.JPG",
-    "images/uploads/IMG_3361.JPG",
-    "images/uploads/IMG_3435.JPG",
-    "images/uploads/IMG_4112.JPG",
-    "images/uploads/IMG_4113.JPG",
-    "images/uploads/IMG_4130.JPG",
-    "images/uploads/IMG_4138.JPG",
-    "images/uploads/IMG_4150.JPG",
-    "images/uploads/IMG_4335.JPG",
-    "images/uploads/IMG_4337.JPG"
+    "images/portrait-01.jpg"
   ],
   "about": {
     "photo": "images/profile.png",
@@ -118,14 +93,7 @@ const SITE = {
         "Aliana’s decade and eight debut celebration. A moment worth remembering, from the journey towards a bright future.",
         "I am the SDE Editor for the whole event. It was a team collaboration with RZ Aperture and SignatureVisuals as Northlight Productions. We have captured a transitional moment in Aliana’s journey, the blooming of a bright future ahead, and a day worth remembering."
       ],
-      "images": [
-        "images/uploads/825271257_122121185739422311_5796447079906569441_n.jpg",
-        "images/uploads/835060361_122121182853422311_8726342660836106704_n.jpg",
-        "images/uploads/1000049457.jpg",
-        "images/uploads/1000049458.jpg"
-      ],
-      "link": "",
-      "linkLabel": ""
+      "images": []
     },
     {
       "title": "Ellen@XVIII",
@@ -135,15 +103,7 @@ const SITE = {
         "The day before legality. A day where Ellen shines brighter than ever, captured in a flash, leaning to a future with much more opportunities to offer.",
         "I am the pre-debut photographer. Capturing such a fleeting moment in one’s beautiful journey in life is such a pleasure, taking in the time before entering legality."
       ],
-      "images": [
-        "images/old-site/home-29.jpg",
-        "images/old-site/home-30.jpg",
-        "images/old-site/home-31.jpg",
-        "images/old-site/home-32.jpg",
-        "images/old-site/home-33.jpg"
-      ],
-      "link": "",
-      "linkLabel": ""
+      "images": []
     }
   ],
   "events": [
@@ -151,10 +111,7 @@ const SITE = {
       "title": "Canon Wedding Masterclass: Capturing love through light, composition and film.",
       "subtitle": "Wedding photography and filmmaking skills with Canon Brand Ambassadors Kenneth Hao and Ian Celis.",
       "date": "2026-10-22",
-      "images": [
-        "images/uploads/1000049926.png",
-        "images/uploads/1000049927.png"
-      ],
+      "images": [],
       "sections": [
         {
           "title": "Part I: Portrait Session and Lighting with Kenneth Hao",
@@ -162,10 +119,7 @@ const SITE = {
             "Every love story deserves to be captured beautifully.",
             "A day of learning, creating, and seeing love through the lens."
           ],
-          "images": [
-            "images/uploads/1000049928.png",
-            "images/uploads/1000049930.png"
-          ]
+          "images": []
         },
         {
           "title": "Part II: Wedding Filmmaking with Ian Celis",
@@ -173,15 +127,9 @@ const SITE = {
             "Every love story has a story worth telling.",
             "In Part II of the Wedding Masterclass, filmmaker Ian Celis guided participants through the art of wedding filmmaking, exploring creative techniques to capture authentic emotions, beautiful moments, and unforgettable love stories in motion."
           ],
-          "images": [
-            "images/uploads/1000049931.png",
-            "images/uploads/1000049932.png"
-          ]
+          "images": []
         }
-      ],
-      "text": [],
-      "link": "",
-      "linkLabel": ""
+      ]
     }
   ],
   "pages": []
