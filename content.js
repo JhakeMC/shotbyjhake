@@ -29,8 +29,8 @@ const SITE = {
       "style": "mint"
     },
     {
-      "label": "The Midnight Suite",
-      "url": "https://drive.google.com/drive/folders/1BRoCBwuXRJQJEMF16dgKah76my-dEN8m?usp=sharing",
+      "label": "Bookings",
+      "url": "booking.html",
       "style": "light"
     }
   ],
