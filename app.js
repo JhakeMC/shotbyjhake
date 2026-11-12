@@ -118,5 +118,31 @@
     if (e.key === "ArrowLeft") show(cur - 1);
     if (e.key === "ArrowRight") show(cur + 1);
   });
+  /* First visit: ask for a follow */
+  const followKey = "shotbyjhake:followed";
+  let alreadySeen = true;
+  try { alreadySeen = localStorage.getItem(followKey) === "1"; } catch { alreadySeen = false; }
+  if (!alreadySeen) {
+    const p = document.createElement("div");
+    p.className = "promo";
+    p.setAttribute("role", "dialog"); p.setAttribute("aria-modal", "true"); p.setAttribute("aria-labelledby", "promoTitle");
+    p.innerHTML = `<div class="promoBox">
+      <button class="promoX" type="button" aria-label="Close">✕</button>
+      <h2 id="promoTitle">Have you followed me yet?</h2>
+      <p>New shoots, behind-the-scenes and open dates go up on Instagram and Facebook first.</p>
+      <div class="btns"><a class="btn" href="${esc(S.instagram.url)}" target="_blank" rel="noopener"><img src="images/icon-instagram.png" alt="" width="22" height="22">Instagram</a><a class="btn alt" href="${esc(S.facebook)}" target="_blank" rel="noopener"><img src="images/icon-facebook.png" alt="" width="22" height="22">Facebook</a></div>
+      </div>`;
+    const closePrompt = () => {
+      try { localStorage.setItem(followKey, "1"); } catch { /* private mode: it just shows again next time */ }
+      p.classList.remove("on");
+      document.body.classList.remove("noscroll");
+      setTimeout(() => p.remove(), 320);
+    };
+    p.addEventListener("click", e => { if (e.target === p || e.target.closest(".promoX")) closePrompt(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && p.isConnected) closePrompt(); });
+    document.body.append(p);
+    requestAnimationFrame(() => { p.classList.add("on"); document.body.classList.add("noscroll"); p.querySelector(".promoX").focus(); });
+  }
+
   if (location.hash) { const t = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (t) setTimeout(() => t.scrollIntoView(), 50); }
 })();
