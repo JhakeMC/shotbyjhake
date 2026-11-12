@@ -1,0 +1,13 @@
+[
+  {
+    "id": "example-1",
+    "date": "2026-12-24",
+    "status": "booked",
+    "type": "Event",
+    "name": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "notes": "Example entry: this day shows as booked on the booking calendar. Delete it or replace it with your real bookings."
+  }
+]

@@ -17,7 +17,7 @@
   const params = new URLSearchParams(location.search), cslug = params.get("p");
   const custom = (S.pages || []).filter(p => p.nav !== false);
 
-  const pages = [["home", "Home", "index.html"], ["about", "About", "about.html"], ["projects", "Projects", "projects.html"], ["events", "Events", "events.html"]];
+  const pages = [["home", "Home", "index.html"], ["about", "About", "about.html"], ["projects", "Projects", "projects.html"], ["events", "Events", "events.html"], ["booking", "Booking", "booking.html"]];
   const nav = () => `<header class="nav"><div class="wrap"><a class="brand" href="index.html">${S.logo ? `<img class="logo" src="${esc(S.logo)}" alt="${esc(S.brand)}">` : esc(S.brand)}</a><nav aria-label="Main"><ul>${
     pages.map(([k, l, h]) => `<li><a href="${h}"${k === page ? ' aria-current="page"' : ""}>${l}</a></li>`).join("") +
     custom.map(p => `<li><a href="page.html?p=${esc(p.slug)}"${page === "page" && cslug === p.slug ? ' aria-current="page"' : ""}>${esc(p.title)}</a></li>`).join("")}</ul></nav></div></header>`;
@@ -73,7 +73,27 @@
     return `<section class="phead"><div class="wrap"><h1>${esc(P.title)}</h1>${P.intro ? `<p>${esc(P.intro)}</p>` : ""}</div></section><section class="sec"><div class="wrap blocks">${(P.blocks || []).map(block).join("")}</div></section>`;
   };
 
-  document.getElementById("root").innerHTML = nav() + `<main>${{ home, about, projects: () => stories("projects"), events: () => stories("events"), page: custompage }[page]()}</main>` + footer();
+  const booking = () => `<section class="phead"><div class="wrap"><h1>Book a shoot</h1><p>Pick an open date and tell me what you have in mind. I reply by email to confirm.</p></div></section>
+  <section class="sec"><div class="wrap"><form class="form glass" id="bookingForm" data-endpoint="" novalidate>
+    <div class="full"><label for="bk-name">Your name <span aria-hidden="true">*</span></label><input id="bk-name" name="name" type="text" autocomplete="name" required><p class="err" id="bk-name-err"></p></div>
+    <div><label for="bk-email">Email <span aria-hidden="true">*</span></label><input id="bk-email" name="email" type="email" autocomplete="email" required><p class="err" id="bk-email-err"></p></div>
+    <div><label for="bk-phone">Phone (optional)</label><input id="bk-phone" name="phone" type="tel" autocomplete="tel"></div>
+    <div><label for="bk-date">Date <span aria-hidden="true">*</span></label><input id="bk-date" name="date" type="date" required><p class="err" id="bk-date-err"></p></div>
+    <div><label for="bk-type">Shoot type</label><select id="bk-type" name="type"><option>Portrait</option><option>Event</option><option>Wedding</option><option>Street / other</option></select></div>
+    <div class="full"><label for="bk-location">Location</label><input id="bk-location" name="location" type="text" autocomplete="address-level2"></div>
+    <div class="full"><label for="bk-notes">Details</label><textarea id="bk-notes" name="notes" rows="4" placeholder="Hours, number of people, mood, pegs..."></textarea></div>
+    <div class="full btns"><button class="btn" type="submit">Request this date</button></div>
+    <p class="err full" id="bk-form-err" aria-live="polite"></p>
+    <div class="full" id="bk-done" hidden></div>
+  </form></div></section>
+  <section class="sec"><div class="wrap"><div class="calbox glass">
+    <div class="calhead"><div><h2>Availability</h2><p class="calmonth" id="calMonth"></p></div><div class="calnav"><button type="button" id="calPrev" aria-label="Previous month">‹</button><button type="button" id="calNext" aria-label="Next month">›</button></div></div>
+    <div class="cal" id="cal" role="grid" aria-label="Availability calendar"></div>
+    <div class="legend"><span><i class="fr"></i>Open</span><span><i class="bk"></i>Booked</span><span><i class="td"></i>Today</span></div>
+    <p class="hint">Busy days are blocked out. Tap an open day and it fills the date in the form above.</p>
+  </div></div></section>`;
+
+  document.getElementById("root").innerHTML = nav() + `<main>${{ home, about, projects: () => stories("projects"), events: () => stories("events"), booking, page: custompage }[page]()}</main>` + footer();
 
   /* Photo viewer: click or tap a photo; arrows, keys or swipe to move */
   const lb = document.createElement("div");
