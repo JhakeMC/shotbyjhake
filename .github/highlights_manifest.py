@@ -18,6 +18,7 @@ import time
 
 FOLDER = "images/highlights"
 MANIFEST = os.path.join(FOLDER, "highlights.json")
+LAYOUT = os.path.join(FOLDER, "layout.json")
 EXTS = {".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif"}
 SHOT = (0x9003, 0x9004)   # DateTimeOriginal, DateTimeDigitized (in the Exif block)
 SAVED = 0x0132            # DateTime (in the main block)
@@ -151,8 +152,32 @@ def size(name):
         return 0, 0
 
 
+def arranged():
+    """The order the site editor saved by hand, if there is one."""
+    try:
+        with open(LAYOUT) as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return []
+    order = data.get("order") if isinstance(data, dict) else data
+    if not isinstance(order, list):
+        return []
+    have = set(photos())
+    out, seen = [], set()
+    for name in order:
+        if isinstance(name, str) and name in have and name not in seen:
+            out.append(name)
+            seen.add(name)
+    return out
+
+
 def main():
-    order = sorted(photos(), key=lambda f: (stamp(f), os.path.splitext(f)[0]), reverse=True)
+    hand = arranged()
+    known = set(hand)
+    fresh = sorted([f for f in photos() if f not in known],
+                   key=lambda f: (stamp(f), os.path.splitext(f)[0]), reverse=True)
+    # Photos that are not in the hand-arranged order yet jump to the top, newest first.
+    order = fresh + hand
     entries = []
     for name in order:
         width, height = size(name)
@@ -160,7 +185,8 @@ def main():
     with open(MANIFEST, "w") as fh:
         json.dump(entries, fh, indent=2)
         fh.write("\n")
-    print("%d highlights, newest first: %s" % (len(entries), order[0] if order else "-"))
+    mode = "hand-arranged" if hand else "newest first"
+    print("%d highlights, %s: %s" % (len(entries), mode, order[0] if order else "-"))
 
 
 if __name__ == "__main__":
