@@ -18,9 +18,9 @@
   const custom = (S.pages || []).filter(p => p.nav !== false);
 
   const pages = [["home", "Home", "index.html"], ["about", "About", "about.html"], ["projects", "Projects", "projects.html"], ["events", "Events", "events.html"], ["booking", "Booking", "booking.html"]];
-  const nav = () => `<header class="nav"><div class="wrap"><a class="brand" href="index.html">${S.logo ? `<img class="logo" src="${esc(S.logo)}" alt="${esc(S.brand)}">` : esc(S.brand)}</a><nav aria-label="Main"><ul>${
+  const nav = () => `<header class="nav"><div class="wrap"><a class="brand" href="index.html">${S.logo ? `<img class="logo" src="${esc(S.logo)}" alt="${esc(S.brand)}">` : esc(S.brand)}</a><nav aria-label="Main"><ul id="mainNav">${
     pages.map(([k, l, h]) => `<li><a href="${h}"${k === page ? ' aria-current="page"' : ""}>${l}</a></li>`).join("") +
-    custom.map(p => `<li><a href="page.html?p=${esc(p.slug)}"${page === "page" && cslug === p.slug ? ' aria-current="page"' : ""}>${esc(p.title)}</a></li>`).join("")}</ul></nav></div></header>`;
+    custom.map(p => `<li><a href="page.html?p=${esc(p.slug)}"${page === "page" && cslug === p.slug ? ' aria-current="page"' : ""}>${esc(p.title)}</a></li>`).join("")}</ul></nav><button class="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mainNav"><span></span><span></span><span></span></button></div></header>`;
 
   const footer = () => `<footer class="foot"><div class="wrap">
     <h2>Need a photographer?</h2>
@@ -108,6 +108,16 @@
   };
   const fadePhotos = scope => (scope || document).querySelectorAll(".ph img").forEach(fadeIn);
   fadePhotos();
+
+  /* Phone menu: the logo stays left and the tabs drop down from the right */
+  const bar = document.querySelector(".nav"), menuBtn = document.querySelector(".menuBtn");
+  if (bar && menuBtn) {
+    const openMenu = open => { bar.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); };
+    menuBtn.addEventListener("click", e => { e.stopPropagation(); openMenu(!bar.classList.contains("open")); });
+    document.addEventListener("click", e => { if (bar.classList.contains("open") && !e.target.closest(".nav")) openMenu(false); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") openMenu(false); });
+    bar.querySelectorAll("#mainNav a").forEach(a => a.addEventListener("click", () => openMenu(false)));
+  }
 
   /* Highlights: photos from images/highlights/, newest first, in Pinterest-style columns.
      Highlights.json records each photo's size, so the wall can be placed before images load. */
