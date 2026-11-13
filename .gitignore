@@ -1,1 +1,5 @@
 content.backup.js
+
+# Python caches the editor creates next to ui_glass.py
+__pycache__/
+*.pyc
