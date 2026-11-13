@@ -26,9 +26,9 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 try:
-    from PIL import Image, ImageOps
+    from PIL import Image, ImageDraw, ImageFilter, ImageOps
 except Exception:
-    Image = ImageOps = None
+    Image = ImageDraw = ImageFilter = ImageOps = None
 try:
     from PIL import ImageTk
 except Exception:
@@ -42,9 +42,13 @@ except Exception:
 DEFAULT_ROOT = r"C:\Users\Mary Grace\Documents\GitHub\shotbyjhake"
 SITE_URL = "https://jhakemc.github.io/shotbyjhake/"
 
-# Colours and fonts for the UI
-BG, CARD, INK, MUTED = "#f4f1fb", "#ffffff", "#221b38", "#6f6790"
-ACC, ACC_D, GO, GO_D, LINE, SOFT = "#5a2dff", "#4720d6", "#12a150", "#0d8442", "#e3ddf5", "#efeafd"
+# Colours and fonts for the UI. The panels are frosted glass: a painted
+# backdrop with soft colour blobs, and rounded panels of blurred white over it.
+BG, CARD, INK, MUTED = "#efe7fc", "#f9f6ff", "#241a3d", "#6b6386"
+ACC, ACC_D, GO, GO_D = "#5a2dff", "#4523c9", "#12a150", "#0d8442"
+LINE, SOFT = "#e6def7", "#f1ebfe"
+GLASS_FROST = 0.68      # how much white is mixed into the frosted panel
+GLASS_PAD = 15          # the glass ring that shows around each panel
 FONT = ("Segoe UI", 10)
 FONT_B = ("Segoe UI", 10, "bold")
 TITLE = ("Segoe UI", 17, "bold")
@@ -397,7 +401,7 @@ class LongField:
 
     def __init__(s, parent, extra, obj=None):
         s.widget = tk.Text(parent, height=extra[0] if extra else 5, wrap="word", font=FONT,
-                           relief="flat", bd=1, undo=True, bg="#fbfaff", highlightthickness=1,
+                           relief="flat", bd=1, undo=True, bg="#fdfbff", highlightthickness=1,
                            highlightbackground=LINE, highlightcolor=ACC, padx=8, pady=6)
 
     def get(s):
@@ -766,7 +770,7 @@ class ListEditor(ttk.Frame):
         s.count.pack(anchor="w", pady=(0, 4))
         s.lb = tk.Listbox(left, width=28, height=height, exportselection=False, font=FONT, activestyle="none",
                           relief="flat", bd=0, highlightthickness=1, highlightbackground=LINE,
-                          highlightcolor=ACC, bg="#fbfaff", selectbackground=ACC, selectforeground="white")
+                          highlightcolor=ACC, bg=CARD, selectbackground=ACC, selectforeground="white")
         s.lb.pack(fill="y", expand=True)
         s.lb.bind("<<ListboxSelect>>", lambda e: s.on_select())
         bar = ttk.Frame(left, style="Card.TFrame")
@@ -882,6 +886,110 @@ BOOKING_F = [("date", "Date (YYYY-MM-DD)", "text"), ("status", "Status", "choice
              ("phone", "Phone", "text"), ("location", "Location", "text"), ("notes", "Notes", "long", 4)]
 
 
+_GRAD = {}
+
+
+def _backdrop_image(w, h):
+    """A soft pastel gradient with blurred colour blobs, like the website behind its cards."""
+    key = (w, h)
+    if key in _GRAD:
+        return _GRAD[key].copy()
+    img = Image.new("RGB", (w, h))
+    draw = ImageDraw.Draw(img)
+    top, bottom = (252, 248, 255), (238, 228, 250)
+    for y in range(h):
+        t = y / max(h - 1, 1)
+        draw.line([(0, y), (w, y)], fill=tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)))
+    overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    blobs = ImageDraw.Draw(overlay)
+    for cx, cy, r, colour in ((0.10, 0.06, 0.36, (237, 32, 36, 58)),
+                              (0.92, 0.12, 0.40, (124, 58, 237, 96)),
+                              (0.76, 0.98, 0.36, (255, 92, 138, 56)),
+                              (0.02, 0.94, 0.32, (167, 139, 250, 84))):
+        x, y, radius = int(w * cx), int(h * cy), int(w * r)
+        blobs.ellipse([x - radius, y - radius, x + radius, y + radius], fill=colour)
+    overlay = overlay.filter(ImageFilter.GaussianBlur(max(22, w // 16)))
+    img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
+    if len(_GRAD) > 3:
+        _GRAD.clear()
+    _GRAD[key] = img
+    return img.copy()
+
+
+def _frost(img, boxes):
+    """Paint each panel as frosted glass: blurred backdrop washed toward white."""
+    width, height = img.size
+    for (x, y, w, h, radius) in boxes:
+        box = (max(0, x - GLASS_PAD), max(0, y - GLASS_PAD),
+               min(width, x + w + GLASS_PAD), min(height, y + h + GLASS_PAD))
+        bw, bh = box[2] - box[0], box[3] - box[1]
+        if bw < 70 or bh < 50:
+            continue
+        # a soft shadow so the panel sits above the backdrop
+        shadow = Image.new("L", (width, height), 0)
+        ImageDraw.Draw(shadow).rounded_rectangle(box, radius=radius + 6, fill=110)
+        shadow = shadow.filter(ImageFilter.GaussianBlur(16))
+        img = Image.composite(Image.new("RGB", (width, height), (74, 38, 128)), img,
+                              shadow.point(lambda v: int(v * 0.45)))
+        # the glass itself, plus one bright hairline along the edge
+        seen = img.crop(box).filter(ImageFilter.GaussianBlur(15))
+        frost = Image.blend(seen, Image.new("RGB", seen.size, (255, 255, 255)), GLASS_FROST)
+        mask = Image.new("L", seen.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, bw - 1, bh - 1), radius=radius, fill=255)
+        img.paste(frost, (box[0], box[1]), mask)
+        edge = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        ImageDraw.Draw(edge).rounded_rectangle(box, radius=radius, outline=(255, 255, 255, 235), width=2)
+        img = Image.alpha_composite(img.convert("RGBA"), edge).convert("RGB")
+    return img
+
+
+class Backdrop(tk.Canvas):
+    """The gradient wallpaper, and the glass panels drawn behind the real widgets."""
+
+    def __init__(s, parent):
+        super().__init__(parent, highlightthickness=0, bd=0, bg=BG)
+        s.panels = []
+        s._item = None
+        s._photo = None
+        s._job = None
+
+    def schedule(s, delay=150):
+        if s._job:
+            try:
+                s.after_cancel(s._job)
+            except Exception:
+                pass
+        s._job = s.after(delay, s.redraw)
+
+    def redraw(s):
+        s._job = None
+        width, height = s.winfo_width(), s.winfo_height()
+        if width < 60 or height < 60 or not (Image and ImageTk and ImageFilter):
+            return
+        boxes = []
+        for widget, radius in s.panels:
+            try:
+                if not widget.winfo_ismapped():
+                    continue
+                boxes.append((widget.winfo_rootx() - s.winfo_rootx(),
+                              widget.winfo_rooty() - s.winfo_rooty(),
+                              widget.winfo_width(), widget.winfo_height(), radius))
+            except tk.TclError:
+                continue
+        img = _backdrop_image(width, height)
+        if boxes:
+            try:
+                img = _frost(img, boxes)
+            except Exception:
+                pass
+        s._photo = ImageTk.PhotoImage(img)
+        if s._item is None:
+            s._item = s.create_image(0, 0, anchor="nw", image=s._photo)
+        else:
+            s.itemconfigure(s._item, image=s._photo)
+        s.tag_lower(s._item)
+
+
 class Server:
     """A tiny local web server so Preview shows the real site."""
 
@@ -904,10 +1012,13 @@ class AppWin(TkinterDnD.Tk if HAS_DND else tk.Tk):
     def __init__(s):
         super().__init__()
         s.title("Jhake Site Editor")
-        s.geometry("1240x820")
-        s.minsize(980, 660)
+        s.geometry("1280x860")
+        s.minsize(1024, 700)
         s.configure(bg=BG)
         s._style()
+        s.backdrop = Backdrop(s)
+        s.backdrop.pack(fill="both", expand=True)
+        s.backdrop.bind("<Configure>", lambda e: s._layout())
 
         s.server = None
         s.root_dir = s.pick_root()
@@ -929,21 +1040,27 @@ class AppWin(TkinterDnD.Tk if HAS_DND else tk.Tk):
         st.configure("Card.TLabel", background=CARD)
         st.configure("Field.TLabel", background=CARD, foreground=INK, font=FONT_B)
         st.configure("Muted.TLabel", background=CARD, foreground=MUTED, font=SMALL)
-        st.configure("Small.TLabel", background=BG, foreground=MUTED, font=SMALL)
-        st.configure("Title.TLabel", background=BG, foreground=INK, font=TITLE)
-        st.configure("Sub.TLabel", background=BG, foreground=MUTED, font=SMALL)
-        st.configure("TNotebook", background=BG, borderwidth=0)
-        st.configure("TNotebook.Tab", padding=(18, 9), font=FONT_B, background=SOFT, foreground=MUTED)
+        st.configure("Small.TLabel", background=CARD, foreground=MUTED, font=SMALL)
+        st.configure("Title.TLabel", background=CARD, foreground=INK, font=TITLE)
+        st.configure("Sub.TLabel", background=CARD, foreground=MUTED, font=SMALL)
+        st.configure("TNotebook", background=CARD, borderwidth=0)
+        st.configure("TNotebook.Tab", padding=(18, 9), font=FONT_B, background=SOFT, foreground=MUTED,
+                     borderwidth=0)
         st.map("TNotebook.Tab", background=[("selected", CARD)], foreground=[("selected", ACC)],
                expand=[("selected", (0, 0, 0, 0))])
-        st.configure("TButton", padding=(12, 6), background=SOFT, font=FONT)
-        st.map("TButton", background=[("active", "#e2d9fb")])
+        st.configure("TButton", padding=(13, 7), background="#ffffff", foreground=INK, font=FONT,
+                     borderwidth=0, relief="flat", bordercolor="#ffffff")
+        st.map("TButton", background=[("active", SOFT)], foreground=[("active", ACC)])
         st.configure("Go.TButton", background=GO, foreground="white", font=FONT_B, padding=(18, 8), borderwidth=0)
         st.map("Go.TButton", background=[("active", GO_D)])
         st.configure("Acc.TButton", background=ACC, foreground="white", font=FONT_B, padding=(18, 8), borderwidth=0)
         st.map("Acc.TButton", background=[("active", ACC_D)])
-        st.configure("TEntry", fieldbackground="#fbfaff", bordercolor=LINE, padding=5)
-        st.configure("TCombobox", fieldbackground="#fbfaff", padding=4)
+        st.configure("TEntry", fieldbackground="#ffffff", bordercolor=LINE, padding=5, lightcolor=LINE,
+                     darkcolor=LINE)
+        st.configure("TCombobox", fieldbackground="#ffffff", padding=4, bordercolor=LINE)
+        st.map("TCombobox", fieldbackground=[("readonly", "#ffffff")])
+        st.configure("TCheckbutton", background=CARD, foreground=INK)
+        st.map("TCheckbutton", background=[("active", CARD)])
 
     def pick_root(s, force=False):
         if not force:
@@ -960,33 +1077,51 @@ class AppWin(TkinterDnD.Tk if HAS_DND else tk.Tk):
 
     # ---- build the window
     def build(s):
-        for w in s.winfo_children():
-            w.destroy()
+        for part in (getattr(s, "head", None), getattr(s, "body", None), getattr(s, "foot", None)):
+            if part is not None:
+                part.destroy()
         s.data = load_site(s.root_dir)
         s.bookings = load_json(os.path.join(s.root_dir, "bookings.json"), [])
         s.snapshot = json.dumps(s.data, sort_keys=True)
+        # three glass panels: title and buttons, the tabs, the status line
+        s.head = tk.Frame(s.backdrop, bg=CARD)
+        s.body = tk.Frame(s.backdrop, bg=CARD)
+        s.foot = tk.Frame(s.backdrop, bg=CARD)
+        s.backdrop.panels = [(s.head, 30), (s.body, 34), (s.foot, 22)]
         s.build_header()
         s.build_tabs()
         s.build_footer()
+        s.after_idle(s._layout)
+
+    def _layout(s):
+        """Place the three panels, then repaint the glass behind them."""
+        width, height = s.backdrop.winfo_width(), s.backdrop.winfo_height()
+        if width < 400 or height < 400 or not hasattr(s, "head"):
+            return
+        margin, gap, head_h, foot_h = 26, 18, 92, 38
+        inner = width - 2 * margin
+        s.head.place(x=margin, y=margin, width=inner, height=head_h)
+        s.foot.place(x=margin, y=height - margin - foot_h, width=inner, height=foot_h)
+        s.body.place(x=margin, y=margin + head_h + gap, width=inner,
+                     height=max(180, height - 2 * margin - head_h - foot_h - 2 * gap))
+        s.backdrop.schedule()
 
     def build_header(s):
-        head = ttk.Frame(s)
-        head.pack(fill="x", padx=18, pady=(14, 8))
-        left = ttk.Frame(head)
-        left.pack(side="left")
+        left = ttk.Frame(s.head, style="Card.TFrame")
+        left.pack(side="left", padx=(22, 0), pady=14)
         ttk.Label(left, text="Jhake Site Editor", style="Title.TLabel").pack(anchor="w")
         ttk.Label(left, text=s.root_dir, style="Sub.TLabel").pack(anchor="w", pady=(2, 0))
 
-        right = ttk.Frame(head)
-        right.pack(side="right")
+        right = ttk.Frame(s.head, style="Card.TFrame")
+        right.pack(side="right", padx=(0, 20))
         ttk.Button(right, text="Publish live", style="Go.TButton", command=s.publish).pack(side="right", padx=(6, 0))
         ttk.Button(right, text="Preview", style="Acc.TButton", command=s.preview).pack(side="right", padx=6)
         ttk.Button(right, text="Save", command=s.save).pack(side="right")
         ttk.Button(right, text="Pull latest", command=s.pull_now).pack(side="right", padx=6)
 
     def build_tabs(s):
-        s.nb = ttk.Notebook(s)
-        s.nb.pack(fill="both", expand=True, padx=18, pady=(0, 8))
+        s.nb = ttk.Notebook(s.body)
+        s.nb.pack(fill="both", expand=True, padx=8, pady=8)
         s.editors = []
 
         for title, schema in (("Site", SITE_F), ("Home", HOME_F), ("About", ABOUT_F)):
@@ -1072,19 +1207,19 @@ class AppWin(TkinterDnD.Tk if HAS_DND else tk.Tk):
         s.refresh_booking_count()
 
     def build_footer(s):
-        foot = ttk.Frame(s)
-        foot.pack(fill="x", padx=18, pady=(0, 12))
-        s.status = ttk.Label(foot, text="", style="Small.TLabel")
+        foot = ttk.Frame(s.foot, style="Card.TFrame")
+        foot.pack(fill="both", expand=True, padx=(22, 20))
+        s.status = ttk.Label(foot, text="", style="Sub.TLabel")
         s.status.pack(side="left")
         ok, msg = s.sync_msg
-        s.set_status(("GitHub: " + msg) if ok else ("GitHub: " + msg))
+        s.set_status("GitHub: " + msg)
         notes = []
         if not Image:
-            notes.append("Install Pillow for photo previews:  pip install pillow")
+            notes.append("Install Pillow for previews:  pip install pillow")
         if not HAS_DND:
-            notes.append("Install tkinterdnd2 to drop photos from Explorer:  pip install tkinterdnd2")
+            notes.append("Install tkinterdnd2 to drop photos:  pip install tkinterdnd2")
         if notes:
-            ttk.Label(foot, text="   ·   ".join(notes), style="Small.TLabel").pack(side="right")
+            ttk.Label(foot, text="   ·   ".join(notes), style="Sub.TLabel").pack(side="right")
 
     # ---- status and dirty tracking
     def set_status(s, text):
