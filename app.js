@@ -73,6 +73,7 @@
     return `<section class="phead"><div class="wrap"><h1>${esc(P.title)}</h1>${P.intro ? `<p>${esc(P.intro)}</p>` : ""}</div></section><section class="sec"><div class="wrap blocks">${(P.blocks || []).map(block).join("")}</div></section>`;
   };
 
+  const messenger = String(S.facebook || "").replace(/^https?:\/\/(www\.)?facebook\.com\//, "https://m.me/").replace(/\/$/, "");
   const booking = () => `<section class="phead"><div class="wrap"><h1>Book a shoot</h1><p>Pick an open date and tell me what you have in mind. I reply by email to confirm.</p></div></section>
   <section class="sec"><div class="wrap"><form class="form glass" id="bookingForm" data-endpoint="" novalidate>
     <div class="full"><label for="bk-name">Your name <span aria-hidden="true">*</span></label><input id="bk-name" name="name" type="text" autocomplete="name" required><p class="err" id="bk-name-err"></p></div>
@@ -86,6 +87,11 @@
     <p class="err full" id="bk-form-err" aria-live="polite"></p>
     <div class="full" id="bk-done" hidden></div>
   </form></div></section>
+  <section class="sec"><div class="wrap"><div class="talk glass">
+    <h2>Prefer to talk?</h2>
+    <p>Skip the form and reach me directly. Tell me the date and what you have in mind, and I will answer with what is open.</p>
+    <div class="btns"><a class="btn" href="tel:${esc(tel)}">Call or text ${esc(S.phone)}</a><a class="btn alt" href="${esc(S.instagram.url)}" target="_blank" rel="noopener"><img src="images/icon-instagram.png" alt="" width="22" height="22">DM on Instagram</a>${messenger ? `<a class="btn ghost" href="${esc(messenger)}" target="_blank" rel="noopener"><img src="images/icon-facebook.png" alt="" width="22" height="22">Message the page</a>` : ""}</div>
+  </div></div></section>
   <section class="sec"><div class="wrap"><div class="calbox glass">
     <div class="calhead"><div><h2>Availability</h2><p class="calmonth" id="calMonth"></p></div><div class="calnav"><button type="button" id="calPrev" aria-label="Previous month">‹</button><button type="button" id="calNext" aria-label="Next month">›</button></div></div>
     <div class="cal" id="cal" role="grid" aria-label="Availability calendar"></div>
@@ -94,6 +100,14 @@
   </div></div></section>`;
 
   document.getElementById("root").innerHTML = nav() + `<main>${{ home, about, projects: () => stories("projects"), events: () => stories("events"), booking, page: custompage }[page]()}</main>` + footer();
+
+  /* Photos fade in as they arrive instead of popping in */
+  const fadeIn = img => {
+    if (img.complete && img.naturalWidth) { img.classList.add("ready"); return; }
+    img.addEventListener("load", () => img.classList.add("ready"), { once: true });
+  };
+  const fadePhotos = scope => (scope || document).querySelectorAll(".ph img").forEach(fadeIn);
+  fadePhotos();
 
   /* Highlights: photos from images/highlights/, newest first, in Pinterest-style columns.
      Highlights.json records each photo's size, so the wall can be placed before images load. */
@@ -131,6 +145,7 @@
             const it = items[i] || {};
             if (it.w > 0 && it.h > 0) el.dataset.ratio = (it.w / it.h).toFixed(4);
           });
+          fadePhotos(wall);
           layoutWall();
         })
         .catch(() => { /* keep the plain list from content.js */ });

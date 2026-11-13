@@ -85,6 +85,9 @@ a{color:inherit}
 .wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:1.1rem;margin-top:1.8rem;align-items:start}
 .wall .ph{margin:0}
 .wall.pins{display:block;position:relative}
+/* Photos fade in once they have arrived */
+.ph img{opacity:0;transition:opacity .45s ease}
+.ph img.ready{opacity:1}
 .wall.pins .ph{position:absolute;top:0;left:0;margin:0;will-change:transform}
 .wall.pins .ph img{height:100%;object-fit:cover}
 .ph{display:block;width:100%;margin:0 0 1.1rem;padding:6px;border:1px solid var(--glass-line);border-radius:24px;background:rgba(255,255,255,.5);box-shadow:var(--shadow);break-inside:avoid;cursor:zoom-in;overflow:hidden;transition:transform .2s,box-shadow .2s}
@@ -223,6 +226,12 @@ button.btn{cursor:pointer;font-family:inherit;font-size:1rem}
 .done p{margin-top:.7rem;max-width:60ch}
 .done .btns{margin-top:1.2rem}
 .hint{margin-top:1.4rem;color:var(--muted);font-size:.95rem;max-width:60ch}
+/* Other ways to book */
+.talk{padding:2.6rem 2rem;border-radius:36px;text-align:center}
+.talk h2{font-size:clamp(1.7rem,3.6vw,2.5rem)}
+.talk p{margin-top:.7rem;max-width:46ch;margin-inline:auto;color:var(--muted)}
+.talk .btns{justify-content:center}
+@media (max-width:560px){ .talk{padding:1.8rem 1.2rem;border-radius:28px} }
 
 /* Availability calendar */
 .calbox{padding:2.4rem;border-radius:36px}
