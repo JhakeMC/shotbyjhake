@@ -1,0 +1,31 @@
+name: Highlights manifest
+
+# Whenever photos change in images/highlights/, rebuild the list the site reads.
+on:
+  push:
+    paths:
+      - "images/highlights/**"
+
+permissions:
+  contents: write
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rebuild highlights.json
+        run: python3 .github/highlights_manifest.py
+      - name: Commit the new list
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/highlights/highlights.json
+          if git diff --cached --quiet; then
+            echo "No change to the highlights list."
+          else
+            git commit -m "Update highlights list [skip ci]"
+            git push
+          fi

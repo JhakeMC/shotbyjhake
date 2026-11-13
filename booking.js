@@ -154,6 +154,7 @@
     selected = booking.date;
     render();
     showDone(booking, sent);
+    if (window.sfx) window.sfx.chime();
   });
 
   fetch("bookings.json", { cache: "no-store" })

@@ -9,12 +9,15 @@
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth;scroll-padding-top:6rem;overflow-x:clip}
 body{background:#fbeef9;color:var(--ink);font:400 1.0625rem/1.65 "Figtree",system-ui,sans-serif;min-height:100vh}
-body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+body::before{content:"";position:fixed;inset:-14vmax;z-index:-1;background:
   radial-gradient(42vmax 42vmax at 6% 8%,rgba(237,32,36,.42),transparent 62%),
   radial-gradient(46vmax 46vmax at 96% 18%,rgba(124,58,237,.46),transparent 62%),
   radial-gradient(40vmax 40vmax at 72% 96%,rgba(255,92,138,.38),transparent 62%),
   radial-gradient(38vmax 38vmax at 4% 92%,rgba(167,139,250,.5),transparent 62%),
-  linear-gradient(160deg,#fff2f3,#f2eaff)}
+  linear-gradient(160deg,#fff2f3,#f2eaff);
+  animation:bgdrift 90s ease-in-out infinite alternate}
+/* Transform only, so the browser moves one ready-made layer instead of repainting. */
+@keyframes bgdrift{from{transform:translate3d(-1.5%,-1%,0) scale(1.02)}to{transform:translate3d(1.5%,1%,0) scale(1.06)}}
 h1,h2,h3{font-family:"Bricolage Grotesque","Figtree",sans-serif;line-height:1;letter-spacing:-.03em;font-weight:800}
 h2{font-size:clamp(2.1rem,5vw,3.4rem)}
 img{display:block;max-width:100%}
@@ -78,6 +81,9 @@ a{color:inherit}
 /* Sections and photo walls */
 .sec{padding:4.2rem 0 1rem}
 .masonry{columns:3 260px;column-gap:1.1rem;margin-top:1.8rem}
+/* Highlights run left to right, one row after another */
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:1.1rem;margin-top:1.8rem;align-items:start}
+.wall .ph{margin:0}
 .ph{display:block;width:100%;margin:0 0 1.1rem;padding:6px;border:1px solid var(--glass-line);border-radius:24px;background:rgba(255,255,255,.5);box-shadow:var(--shadow);break-inside:avoid;cursor:zoom-in;overflow:hidden;transition:transform .2s,box-shadow .2s}
 .ph:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(124,58,237,.26)}
 .ph img{width:100%;height:auto;border-radius:18px}
@@ -96,7 +102,7 @@ a{color:inherit}
 /* About */
 .aboutTop{padding-top:1.5rem}
 .about{display:grid;grid-template-columns:.8fr 1.2fr;gap:3rem;align-items:center;padding:2.8rem;border-radius:36px}
-.avatar{width:min(100%,360px);aspect-ratio:1;object-fit:cover;border-radius:50%;border:6px solid rgba(255,255,255,.75);box-shadow:0 0 0 8px rgba(237,32,36,.18),0 18px 44px rgba(124,58,237,.3);margin-inline:auto}
+.avatar{width:min(100%,360px);aspect-ratio:1;object-fit:contain;margin-inline:auto}
 .about h1{font-size:clamp(3rem,8vw,6rem);margin-bottom:1rem;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.06em}
 .h-sm{font-size:clamp(1.5rem,3vw,2rem);margin-bottom:1rem;color:var(--violet)}
 .about p{max-width:60ch;margin-bottom:1rem}
@@ -177,6 +183,7 @@ a{color:inherit}
   .btns{flex-direction:column;align-items:stretch}
   .btn{width:100%}
   .masonry{columns:2 130px;column-gap:.7rem}
+  .wall{grid-template-columns:repeat(2,1fr);gap:.7rem}
   .ph{margin-bottom:.7rem;padding:4px;border-radius:18px}
   .ph img{border-radius:14px}
   .ph:hover{transform:none}

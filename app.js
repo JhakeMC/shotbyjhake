@@ -31,17 +31,17 @@
 
   const home = () => {
     const lp = newest(S.projects)[0], le = newest(S.events)[0];
-    const feat = (it, kind, h, cls) => it ? `<a class="feat ${cls}" href="${h}#${slug(it.title)}">${cover(it).src ? `<img src="${esc(cover(it).src)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<div><small>Latest ${kind}, ${fmt(it.date)}</small><h3>${esc(it.title)}</h3><p>${esc(it.subtitle || "")}</p></div></a>` : "";
+    const feat = (it, kind, h, cls) => it ? `<a class="feat ${cls}" href="${h}#${slug(it.title)}">${cover(it).src ? `<img src="${esc(cover(it).src)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ""}<div><small>Latest ${kind}, ${fmt(it.date)}</small><h3>${esc(it.title)}</h3><p>${esc(it.subtitle || "")}</p></div></a>` : "";
     const run = [...S.roles, ...S.roles].map(r => `<span>${esc(r)}</span>`).join("");
     const hero = (S.hero && S.hero.length ? S.hero : S.highlights || []).slice(0, 3);
     return `<section class="hero"><div class="wrap">
       <div><h1>${esc(S.name)}</h1><p class="lede">${esc(S.tagline)}</p>
       <div class="roles">${S.roles.map(r => `<span>${esc(r)}</span>`).join("")}</div>
       <div class="btns">${(S.heroButtons || []).map(btn).join("")}</div></div>
-      ${hero.length ? `<div class="collage${hero.length < 2 ? " solo" : ""}" aria-hidden="true">${hero.map((s, i) => `<img class="c${i}" src="${esc(norm(s).src)}" alt="" onerror="this.remove()">`).join("")}</div>` : ""}
+      ${hero.length ? `<div class="collage${hero.length < 2 ? " solo" : ""}" aria-hidden="true">${hero.map((s, i) => `<img class="c${i}" src="${esc(norm(s).src)}" alt="" decoding="async"${i === 0 ? ' fetchpriority="high"' : ""} onerror="this.remove()">`).join("")}</div>` : ""}
     </div></section>
     <div class="marquee" aria-hidden="true"><div>${run}${run}</div></div>
-    <section class="sec"><div class="wrap"><h2>Highlights</h2>${gallery(S.highlights, "hl")}</div></section>
+    <section class="sec"><div class="wrap"><h2>Highlights</h2><div class="wall" id="hlWall">${(S.highlights || []).map(i => pic(i, "hl")).join("")}</div></div></section>
     ${lp || le ? `<section class="sec latest"><div class="wrap"><h2>Latest work</h2><div class="feats">${feat(lp, "project", "projects.html", "p")}${feat(le, "event", "events.html", "e")}</div></div></section>` : ""}`;
   };
 
@@ -94,6 +94,18 @@
   </div></div></section>`;
 
   document.getElementById("root").innerHTML = nav() + `<main>${{ home, about, projects: () => stories("projects"), events: () => stories("events"), booking, page: custompage }[page]()}</main>` + footer();
+
+  /* Highlights come from the photos in images/highlights/, listed newest first in highlights.json */
+  if (page === "home") {
+    fetch("images/highlights/highlights.json", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(list => {
+        const wall = document.getElementById("hlWall");
+        if (!wall || !Array.isArray(list) || !list.length) return;
+        wall.innerHTML = list.filter(f => typeof f === "string").map(f => pic("images/highlights/" + f, "hl")).join("");
+      })
+      .catch(() => { /* keep the list from content.js */ });
+  }
 
   /* Photo viewer: click or tap a photo; arrows, keys or swipe to move */
   const lb = document.createElement("div");
