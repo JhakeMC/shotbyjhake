@@ -95,16 +95,48 @@
 
   document.getElementById("root").innerHTML = nav() + `<main>${{ home, about, projects: () => stories("projects"), events: () => stories("events"), booking, page: custompage }[page]()}</main>` + footer();
 
-  /* Highlights come from the photos in images/highlights/, listed newest first in highlights.json */
+  /* Highlights: photos from images/highlights/, newest first, in Pinterest-style columns.
+     Highlights.json records each photo's size, so the wall can be placed before images load. */
   if (page === "home") {
-    fetch("images/highlights/highlights.json", { cache: "no-store" })
-      .then(r => r.ok ? r.json() : null)
-      .then(list => {
-        const wall = document.getElementById("hlWall");
-        if (!wall || !Array.isArray(list) || !list.length) return;
-        wall.innerHTML = list.filter(f => typeof f === "string").map(f => pic("images/highlights/" + f, "hl")).join("");
-      })
-      .catch(() => { /* keep the list from content.js */ });
+    const wall = document.getElementById("hlWall");
+    const layoutWall = () => {
+      const items = wall ? [...wall.children] : [];
+      if (!items.length || !items[0].dataset.ratio || !wall.clientWidth) return;
+      const gap = 14, minCol = 230, pad = 14;
+      const width = wall.clientWidth;
+      const cols = width < 520 ? 2 : Math.max(1, Math.min(4, Math.floor((width + gap) / (minCol + gap))));
+      const colW = (width - gap * (cols - 1)) / cols;
+      const heights = new Array(cols).fill(0);
+      items.forEach(el => {
+        const ratio = Number(el.dataset.ratio) || 1;
+        const h = (colW - pad) / ratio + pad;
+        let target = 0;
+        for (let k = 1; k < cols; k++) if (heights[k] < heights[target] - 0.5) target = k;
+        el.style.width = colW + "px";
+        el.style.height = h + "px";
+        el.style.transform = `translate(${target * (colW + gap)}px, ${heights[target]}px)`;
+        heights[target] += h + gap;
+      });
+      wall.style.height = (Math.max(...heights) - gap) + "px";
+      wall.classList.add("pins");
+    };
+    if (wall) {
+      fetch("images/highlights/highlights.json", { cache: "no-store" })
+        .then(r => r.ok ? r.json() : null)
+        .then(list => {
+          if (!Array.isArray(list) || !list.length) return;
+          const items = list.map(e => typeof e === "string" ? { file: e } : (e || {}));
+          wall.innerHTML = items.filter(it => it.file).map(it => pic("images/highlights/" + it.file, "hl")).join("");
+          [...wall.children].forEach((el, i) => {
+            const it = items[i] || {};
+            if (it.w > 0 && it.h > 0) el.dataset.ratio = (it.w / it.h).toFixed(4);
+          });
+          layoutWall();
+        })
+        .catch(() => { /* keep the plain list from content.js */ });
+      let resizeTimer = 0;
+      addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(layoutWall, 150); });
+    }
   }
 
   /* Photo viewer: click or tap a photo; arrows, keys or swipe to move */

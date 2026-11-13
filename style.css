@@ -81,9 +81,12 @@ a{color:inherit}
 /* Sections and photo walls */
 .sec{padding:4.2rem 0 1rem}
 .masonry{columns:3 260px;column-gap:1.1rem;margin-top:1.8rem}
-/* Highlights run left to right, one row after another */
+/* Highlights: plain rows until the script places them, then Pinterest columns */
 .wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:1.1rem;margin-top:1.8rem;align-items:start}
 .wall .ph{margin:0}
+.wall.pins{display:block;position:relative}
+.wall.pins .ph{position:absolute;top:0;left:0;margin:0;will-change:transform}
+.wall.pins .ph img{height:100%;object-fit:cover}
 .ph{display:block;width:100%;margin:0 0 1.1rem;padding:6px;border:1px solid var(--glass-line);border-radius:24px;background:rgba(255,255,255,.5);box-shadow:var(--shadow);break-inside:avoid;cursor:zoom-in;overflow:hidden;transition:transform .2s,box-shadow .2s}
 .ph:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(124,58,237,.26)}
 .ph img{width:100%;height:auto;border-radius:18px}
