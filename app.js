@@ -18,7 +18,7 @@
   const custom = (S.pages || []).filter(p => p.nav !== false);
 
   const pages = [["home", "Home", "index.html"], ["about", "About", "about.html"], ["projects", "Projects", "projects.html"], ["events", "Events", "events.html"], ["booking", "Booking", "booking.html"]];
-  const nav = () => `<header class="nav"><div class="wrap"><a class="brand" href="index.html">${S.logo ? `<img class="logo" src="${esc(S.logo)}" alt="${esc(S.brand)}">` : esc(S.brand)}</a><nav aria-label="Main"><ul id="mainNav">${
+  const nav = () => `<header class="nav"><div class="wrap"><a class="brand" href="index.html">${S.logo ? `<img class="logo" src="${esc(S.logo)}" alt="${esc(S.brand)}">` : esc(S.brand)}</a><button class="themeBtn" type="button" aria-label="Switch to dark mode" aria-pressed="false"><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.8A8.6 8.6 0 1 1 9.2 3.5a6.8 6.8 0 0 0 11.3 11.3Z"/></svg></button><nav aria-label="Main"><ul id="mainNav">${
     pages.map(([k, l, h]) => `<li><a href="${h}"${k === page ? ' aria-current="page"' : ""}>${l}</a></li>`).join("") +
     custom.map(p => `<li><a href="page.html?p=${esc(p.slug)}"${page === "page" && cslug === p.slug ? ' aria-current="page"' : ""}>${esc(p.title)}</a></li>`).join("")}</ul></nav><button class="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mainNav"><span></span><span></span><span></span></button></div></header>`;
 
@@ -117,6 +117,34 @@
     document.addEventListener("click", e => { if (bar.classList.contains("open") && !e.target.closest(".nav")) openMenu(false); });
     document.addEventListener("keydown", e => { if (e.key === "Escape") openMenu(false); });
     bar.querySelectorAll("#mainNav a").forEach(a => a.addEventListener("click", () => openMenu(false)));
+  }
+
+  /* Light and dark: the device picks the first one, the button overrides it for good */
+  const themeBtn = document.querySelector(".themeBtn");
+  if (themeBtn) {
+    const root = document.documentElement, STORE = "shotbyjhake:theme";
+    const sync = () => {
+      const dark = root.dataset.theme === "dark";
+      themeBtn.setAttribute("aria-pressed", String(dark));
+      themeBtn.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", dark ? "#0d0718" : "#ed2024");
+    };
+    themeBtn.addEventListener("click", () => {
+      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+      try { localStorage.setItem(STORE, root.dataset.theme); } catch { /* private mode: just this visit */ }
+      sync();
+    });
+    try {
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+        let chosen = null;
+        try { chosen = localStorage.getItem(STORE); } catch { /* ignore */ }
+        if (chosen === "light" || chosen === "dark") return;
+        root.dataset.theme = e.matches ? "dark" : "light";
+        sync();
+      });
+    } catch { /* older browsers keep the starting theme */ }
+    sync();
   }
 
   /* Highlights: photos from images/highlights/, newest first, in Pinterest-style columns.
