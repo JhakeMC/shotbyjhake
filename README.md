@@ -5,6 +5,8 @@ Plain HTML/CSS/JS. No build step. Content lives in `content.js`.
 ## Easiest way to edit: the Site Editor
 Double-click `site_editor.pyw`. It now sits in this folder, so it arrives with every pull. It is harmless on the live site (a browser only downloads it if you ask for it), and you can move or delete it later if you want it out of the repository.
 
+Two files travel together: **`site_editor.pyw`** and **`ui_glass.py`**, which paints the window's frosted glass. Keep them side by side. If `ui_glass.py` is missing the editor still runs, just without the glass.
+
 **It pulls the latest commit from GitHub every time it opens**, so you always start from what is live. If there are unsaved edits it will not pull over them.
 
 Tabs: **Site** (name, contacts, logo), **Home** (top collage, buttons), **About**, **Projects**, **Events**, **Pages**, **Highlights** (the photo wall), **Bookings** (days that are taken).

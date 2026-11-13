@@ -17,8 +17,12 @@ Needs Python 3.9+. Two optional extras make it nicer, and the editor tells you
 if they are missing:
     pip install pillow tkinterdnd2
 
-Pillow gives photo previews, and tkinterdnd2 makes dropping files from Explorer
-work. Without tkinterdnd2 you can still add photos with the "Add photos" button.
+Pillow gives photo previews and paints the frosted glass, and tkinterdnd2 makes
+dropping files from Explorer work. Without tkinterdnd2 you can still add photos
+with the "Add photos" button.
+
+Keep ui_glass.py next to this file: it holds the window's glass look, copied
+from the website's style.css.
 """
 import datetime, functools, json, os, re, shutil, subprocess, sys, threading, traceback, webbrowser
 import tkinter as tk
@@ -26,9 +30,9 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 try:
-    from PIL import Image, ImageDraw, ImageFilter, ImageOps
+    from PIL import Image, ImageOps
 except Exception:
-    Image = ImageDraw = ImageFilter = ImageOps = None
+    Image = ImageOps = None
 try:
     from PIL import ImageTk
 except Exception:
@@ -42,13 +46,32 @@ except Exception:
 DEFAULT_ROOT = r"C:\Users\Mary Grace\Documents\GitHub\shotbyjhake"
 SITE_URL = "https://jhakemc.github.io/shotbyjhake/"
 
-# Colours and fonts for the UI. The panels are frosted glass: a painted
-# backdrop with soft colour blobs, and rounded panels of blurred white over it.
-BG, CARD, INK, MUTED = "#efe7fc", "#f9f6ff", "#241a3d", "#6b6386"
-ACC, ACC_D, GO, GO_D = "#5a2dff", "#4523c9", "#12a150", "#0d8442"
-LINE, SOFT = "#e6def7", "#f1ebfe"
-GLASS_FROST = 0.68      # how much white is mixed into the frosted panel
-GLASS_PAD = 15          # the glass ring that shows around each panel
+# The window's colours and its frosted glass live in ui_glass.py, which copies
+# the recipe from the website's style.css. Keep the two files side by side.
+try:
+    _HERE = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    _HERE = os.path.dirname(os.path.abspath(sys.argv[0] or os.getcwd()))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+try:
+    from ui_glass import Backdrop, BG, CARD, INK, MUTED, ACC, ACC_D, GO, GO_D, LINE, SOFT
+except ImportError:
+    Backdrop = None          # no ui_glass.py: the editor still runs, plain and pale
+    BG, CARD, INK, MUTED = "#fbeef9", "#fafafe", "#2b1646", "#6a5784"
+    ACC, ACC_D, GO, GO_D = "#7c3aed", "#6d28d9", "#12a150", "#0d8442"
+    LINE, SOFT = "#e8dff8", "#f3ecfe"
+
+if Backdrop is None:
+    class Backdrop(tk.Canvas):
+        """Fallback: the window keeps a flat pastel background."""
+
+        def __init__(s, parent):
+            super().__init__(parent, bg=BG, highlightthickness=0, bd=0)
+            s.panels = []
+
+        def schedule(s, delay=150):
+            pass
 FONT = ("Segoe UI", 10)
 FONT_B = ("Segoe UI", 10, "bold")
 TITLE = ("Segoe UI", 17, "bold")
@@ -886,110 +909,6 @@ BOOKING_F = [("date", "Date (YYYY-MM-DD)", "text"), ("status", "Status", "choice
              ("phone", "Phone", "text"), ("location", "Location", "text"), ("notes", "Notes", "long", 4)]
 
 
-_GRAD = {}
-
-
-def _backdrop_image(w, h):
-    """A soft pastel gradient with blurred colour blobs, like the website behind its cards."""
-    key = (w, h)
-    if key in _GRAD:
-        return _GRAD[key].copy()
-    img = Image.new("RGB", (w, h))
-    draw = ImageDraw.Draw(img)
-    top, bottom = (252, 248, 255), (238, 228, 250)
-    for y in range(h):
-        t = y / max(h - 1, 1)
-        draw.line([(0, y), (w, y)], fill=tuple(int(top[i] + (bottom[i] - top[i]) * t) for i in range(3)))
-    overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    blobs = ImageDraw.Draw(overlay)
-    for cx, cy, r, colour in ((0.10, 0.06, 0.36, (237, 32, 36, 58)),
-                              (0.92, 0.12, 0.40, (124, 58, 237, 96)),
-                              (0.76, 0.98, 0.36, (255, 92, 138, 56)),
-                              (0.02, 0.94, 0.32, (167, 139, 250, 84))):
-        x, y, radius = int(w * cx), int(h * cy), int(w * r)
-        blobs.ellipse([x - radius, y - radius, x + radius, y + radius], fill=colour)
-    overlay = overlay.filter(ImageFilter.GaussianBlur(max(22, w // 16)))
-    img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
-    if len(_GRAD) > 3:
-        _GRAD.clear()
-    _GRAD[key] = img
-    return img.copy()
-
-
-def _frost(img, boxes):
-    """Paint each panel as frosted glass: blurred backdrop washed toward white."""
-    width, height = img.size
-    for (x, y, w, h, radius) in boxes:
-        box = (max(0, x - GLASS_PAD), max(0, y - GLASS_PAD),
-               min(width, x + w + GLASS_PAD), min(height, y + h + GLASS_PAD))
-        bw, bh = box[2] - box[0], box[3] - box[1]
-        if bw < 70 or bh < 50:
-            continue
-        # a soft shadow so the panel sits above the backdrop
-        shadow = Image.new("L", (width, height), 0)
-        ImageDraw.Draw(shadow).rounded_rectangle(box, radius=radius + 6, fill=110)
-        shadow = shadow.filter(ImageFilter.GaussianBlur(16))
-        img = Image.composite(Image.new("RGB", (width, height), (74, 38, 128)), img,
-                              shadow.point(lambda v: int(v * 0.45)))
-        # the glass itself, plus one bright hairline along the edge
-        seen = img.crop(box).filter(ImageFilter.GaussianBlur(15))
-        frost = Image.blend(seen, Image.new("RGB", seen.size, (255, 255, 255)), GLASS_FROST)
-        mask = Image.new("L", seen.size, 0)
-        ImageDraw.Draw(mask).rounded_rectangle((0, 0, bw - 1, bh - 1), radius=radius, fill=255)
-        img.paste(frost, (box[0], box[1]), mask)
-        edge = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-        ImageDraw.Draw(edge).rounded_rectangle(box, radius=radius, outline=(255, 255, 255, 235), width=2)
-        img = Image.alpha_composite(img.convert("RGBA"), edge).convert("RGB")
-    return img
-
-
-class Backdrop(tk.Canvas):
-    """The gradient wallpaper, and the glass panels drawn behind the real widgets."""
-
-    def __init__(s, parent):
-        super().__init__(parent, highlightthickness=0, bd=0, bg=BG)
-        s.panels = []
-        s._item = None
-        s._photo = None
-        s._job = None
-
-    def schedule(s, delay=150):
-        if s._job:
-            try:
-                s.after_cancel(s._job)
-            except Exception:
-                pass
-        s._job = s.after(delay, s.redraw)
-
-    def redraw(s):
-        s._job = None
-        width, height = s.winfo_width(), s.winfo_height()
-        if width < 60 or height < 60 or not (Image and ImageTk and ImageFilter):
-            return
-        boxes = []
-        for widget, radius in s.panels:
-            try:
-                if not widget.winfo_ismapped():
-                    continue
-                boxes.append((widget.winfo_rootx() - s.winfo_rootx(),
-                              widget.winfo_rooty() - s.winfo_rooty(),
-                              widget.winfo_width(), widget.winfo_height(), radius))
-            except tk.TclError:
-                continue
-        img = _backdrop_image(width, height)
-        if boxes:
-            try:
-                img = _frost(img, boxes)
-            except Exception:
-                pass
-        s._photo = ImageTk.PhotoImage(img)
-        if s._item is None:
-            s._item = s.create_image(0, 0, anchor="nw", image=s._photo)
-        else:
-            s.itemconfigure(s._item, image=s._photo)
-        s.tag_lower(s._item)
-
-
 class Server:
     """A tiny local web server so Preview shows the real site."""
 
@@ -1087,7 +1006,7 @@ class AppWin(TkinterDnD.Tk if HAS_DND else tk.Tk):
         s.head = tk.Frame(s.backdrop, bg=CARD)
         s.body = tk.Frame(s.backdrop, bg=CARD)
         s.foot = tk.Frame(s.backdrop, bg=CARD)
-        s.backdrop.panels = [(s.head, 30), (s.body, 34), (s.foot, 22)]
+        s.backdrop.panels = [(s.head, 28), (s.body, 34), (s.foot, 30)]
         s.build_header()
         s.build_tabs()
         s.build_footer()
